@@ -8,9 +8,9 @@ Each searcher is its own OS process with its own map and its own decisions. Agen
 
 ## Demo
 
-[![Ridgeline demo video: searchers keep working through a radio blackout and the loss of a teammate, then find the hiker](docs/demo-poster.jpg)](docs/demo.mp4)
+[![Ridgeline demo: searchers keep working through a radio blackout and the loss of a teammate, then find the hiker](docs/demo-preview.webp)](docs/demo.mp4)
 
-*43 seconds, with sound. Click the image to play [`docs/demo.mp4`](docs/demo.mp4). Recorded on [ridgeline.wendyji.com](https://ridgeline.wendyji.com) using the in-browser simulation.*
+*Silent preview of the key moments. Click it for the full 43-second video with voiceover ([`docs/demo.mp4`](docs/demo.mp4)). Recorded with the in-browser simulation.*
 
 ## Results
 
@@ -36,7 +36,7 @@ cd server && bun install && bun run dev:sim
 cd web && bun install && bun run dev
 ```
 
-Open http://localhost:3000, press **Space** to start, then try **B** (radio blackout), **1–6** (view one agent's map), and **Kill** on an agent card. `/compare` shows the strategy comparison.
+Open http://localhost:3000, press **Space** to start, then try **B** (radio blackout), **1–6** (view one agent's map), and **Kill** on an agent card. **N** (or **New map**) generates a different mountain; **R** (Reset) replays the current one. The default map, seed 39, is the one the demo script is tuned for. `/compare` shows the strategy comparison.
 
 | Variable | Where | Purpose |
 |---|---|---|
