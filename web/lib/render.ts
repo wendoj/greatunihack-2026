@@ -44,7 +44,7 @@ function hillshade(world: WorldPublic): HTMLCanvasElement {
   const ln = Math.hypot(...L);
   const lx = L[0] / ln, ly = L[1] / ln, lz = L[2] / ln;
   const Z = 2.2; // vertical exaggeration
-  const lowC = [20, 20, 20], midC = [44, 44, 43], highC = [104, 102, 97];
+  const lowC = [52, 56, 58], midC = [92, 96, 96], highC = [170, 168, 160];
   for (let py = 0; py < W; py++)
     for (let px = 0; px < W; px++) {
       const X = (px + 0.5) / S, Y = (py + 0.5) / S;
@@ -55,7 +55,7 @@ function hillshade(world: WorldPublic): HTMLCanvasElement {
       const shade = Math.max(0, (-dzdx * lx - dzdy * ly + lz) / nl);
       const t = (e - lo) / (hi - lo || 1);
       const [a, b, u] = t < 0.55 ? [lowC, midC, t / 0.55] : [midC, highC, (t - 0.55) / 0.45];
-      const k = 0.45 + 0.85 * shade;
+      const k = 0.6 + 0.6 * shade;
       const contour = Math.floor(e / 25) !== Math.floor(at(X + 1 / S, Y) / 25) || Math.floor(e / 25) !== Math.floor(at(X, Y + 1 / S) / 25);
       const o = (py * W + px) * 4;
       for (let ch = 0; ch < 3; ch++) {

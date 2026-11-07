@@ -80,28 +80,28 @@ function AgentRow({
           ) : (
             <span className="size-2 rounded-full" style={{ background: agentColor(a.id) }} />
           )}
-          <span className="font-mono text-xs font-medium text-foreground">{isBase ? "BASE" : a.id}</span>
+          <span className="font-mono text-[13px] font-semibold text-foreground">{isBase ? "BASE" : a.id}</span>
           {lost ? (
             <span className="eyebrow">lost</span>
           ) : (
             !isBase &&
             a.mode !== "search" && (
-              <span className={cn("rounded px-1.5 font-mono text-[10px] uppercase", mode.className)}>{mode.label}</span>
+              <span className={cn("rounded px-1.5 font-mono text-[11px] uppercase", mode.className)}>{mode.label}</span>
             )
           )}
           <span className="ml-auto flex items-center gap-2">
             {!lost && missing > 0 && (
-              <span className="font-mono text-[10px] text-brand tabular-nums" title="Sweeps this agent hasn't heard about">
+              <span className="font-mono text-[11px] text-brand tabular-nums" title="Sweeps this agent hasn't heard about">
                 −{missing}
               </span>
             )}
-            {!a.radioOn && <WifiOff className="size-3.5 text-foreground/40" aria-label="radio off" />}
+            {!a.radioOn && <WifiOff className="size-3.5 text-foreground/65" aria-label="radio off" />}
           </span>
         </div>
         <Tooltip>
           <TooltipTrigger
             render={<div />}
-            className="line-clamp-2 font-mono text-[11px] leading-snug break-words text-foreground/70"
+            className="line-clamp-2 font-mono text-[12px] leading-snug break-words text-foreground/90"
           >
             {lost ? "No telemetry for 3 s" : a.reason}
           </TooltipTrigger>
@@ -120,10 +120,10 @@ function AgentRow({
                 const st = a.links[p];
                 const ms = a.lastHeard[p];
                 return (
-                  <span key={p} className="flex items-center gap-1 font-mono text-[10.5px] tabular-nums" title={st ?? "never heard"}>
+                  <span key={p} className="flex items-center gap-1 font-mono text-[11.5px] tabular-nums" title={st ?? "never heard"}>
                     <span className="size-1.5 rounded-full" style={{ background: st ? LINK_COLORS[st] ?? "#3f3f3f" : "#262626" }} />
                     <span className="text-foreground/80">{p === "BASE" ? "Base" : p}</span>
-                    <span className="text-foreground/40">
+                    <span className="text-foreground/65">
                       {ms === undefined ? "—" : ms < 1000 ? `${Math.round(ms)}ms` : `${(ms / 1000).toFixed(1)}s`}
                     </span>
                   </span>
@@ -132,7 +132,7 @@ function AgentRow({
           </div>
           {!isBase && (
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[10.5px] text-foreground/40 tabular-nums">
+              <span className="font-mono text-[11.5px] text-foreground/65 tabular-nums">
                 {a.stats.sweeps} sweeps · {a.stats.duplicateSweeps} dup
               </span>
               <div className="ml-auto flex gap-1.5">

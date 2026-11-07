@@ -10,11 +10,11 @@ const ICONS: Record<SimEvent["kind"], { icon: React.ElementType; className: stri
   base_informed: { icon: Tent, className: "text-emerald-400" },
   peer_lost: { icon: Unlink, className: "text-red-400/70" },
   peer_joined: { icon: Link2, className: "text-emerald-400/70" },
-  agent_killed: { icon: Skull, className: "text-foreground/60" },
-  radio: { icon: Radio, className: "text-foreground/60" },
-  storm: { icon: CloudLightning, className: "text-foreground/60" },
+  agent_killed: { icon: Skull, className: "text-foreground/78" },
+  radio: { icon: Radio, className: "text-foreground/78" },
+  storm: { icon: CloudLightning, className: "text-foreground/78" },
   blackout: { icon: ZapOff, className: "text-brand" },
-  reset: { icon: RotateCcw, className: "text-foreground/40" },
+  reset: { icon: RotateCcw, className: "text-foreground/65" },
 };
 
 const ago = (ms: number) => (ms < 5000 ? "now" : ms < 60000 ? `${Math.floor(ms / 1000)}s` : `${Math.floor(ms / 60000)}m`);
@@ -36,15 +36,15 @@ export function EventFeed({ events }: { events: SimEvent[] }) {
         const { icon: Icon, className } = ICONS[e.kind];
         const big = e.kind === "found" || e.kind === "base_informed" || e.kind === "blackout";
         return (
-          <li key={`${e.t}-${i}-${e.text}`} className="flex items-start gap-2 px-1 py-[3px] text-xs leading-snug">
+          <li key={`${e.t}-${i}-${e.text}`} className="flex items-start gap-2 px-1 py-[3px] text-[13px] leading-snug">
             <Icon className={`mt-0.5 size-3 shrink-0 ${className}`} />
-            <span className={big ? "font-medium text-foreground" : "text-foreground/65"}>
+            <span className={big ? "font-medium text-foreground" : "text-foreground/82"}>
               {e.agent && (
                 <span className="mr-1.5 inline-block size-1.5 -translate-y-px rounded-full" style={{ background: agentColor(e.agent) }} />
               )}
               {e.text}
             </span>
-            <span className="ml-auto shrink-0 font-mono text-[10px] text-foreground/35 tabular-nums">
+            <span className="ml-auto shrink-0 font-mono text-[11px] text-foreground/60 tabular-nums">
               {now ? ago(now - e.t) : ""}
             </span>
           </li>

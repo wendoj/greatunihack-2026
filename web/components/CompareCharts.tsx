@@ -18,8 +18,8 @@ import type { CompareResults, Strategy } from "@/lib/contract";
 import { STRATEGY_COLORS, STRATEGY_LABELS } from "@/lib/colors";
 
 const ORDER: Strategy[] = ["ridgeline", "independent", "central"];
-const AXIS = { stroke: "#262626", tick: { fill: "#8b8f91", fontSize: 11, fontFamily: "var(--font-geist-mono)" }, tickLine: false };
-const GRIDC = <CartesianGrid stroke="#161616" vertical={false} />;
+const AXIS = { stroke: "#3a3d44", tick: { fill: "#b4b8bd", fontSize: 11, fontFamily: "var(--font-geist-mono)" }, tickLine: false };
+const GRIDC = <CartesianGrid stroke="#262930" vertical={false} />;
 const TIP = {
   contentStyle: { background: "rgba(0,0,0,0.9)", border: "1px solid rgba(242,241,236,0.12)", borderRadius: 8, fontSize: 12 },
   labelStyle: { color: "#e8edef", fontFamily: "var(--font-geist-mono)", textTransform: "uppercase", fontSize: 11 },
@@ -32,7 +32,7 @@ function Title({ children, note }: { children: React.ReactNode; note?: string })
         <span className="size-1.5 bg-brand" />
         {children}
       </h2>
-      {note && <span className="font-mono text-[10.5px] text-foreground/35 uppercase">{note}</span>}
+      {note && <span className="font-mono text-[11.5px] text-foreground/60 uppercase">{note}</span>}
     </div>
   );
 }
@@ -112,7 +112,7 @@ export function CompareCharts({ results }: { results: CompareResults }) {
               <XAxis dataKey="tick" {...AXIS} type="number" domain={[0, results.maxTicks]}  />
               <YAxis {...AXIS} domain={[0, 100]} unit="%" width={44} />
               <Tooltip {...TIP} formatter={(v, n) => [`${v}%`, STRATEGY_LABELS[n as Strategy] ?? n]} labelFormatter={(t) => `tick ${t}`} />
-              <RLegend formatter={(v) => <span className="font-mono text-[11px] text-foreground/70 uppercase">{STRATEGY_LABELS[v as Strategy]}</span>} />
+              <RLegend formatter={(v) => <span className="font-mono text-[11px] text-foreground/85 uppercase">{STRATEGY_LABELS[v as Strategy]}</span>} />
               {present.map((s) => (
                 <Line
                   key={s}

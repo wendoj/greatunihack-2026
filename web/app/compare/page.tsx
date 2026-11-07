@@ -117,7 +117,7 @@ export default function ComparePage() {
         {results && (
           <p className="max-w-4xl text-[26px] leading-tight tracking-tight text-foreground">
             {summaryParts(results)[0]}
-            <span className="text-foreground/45">{summaryParts(results)[1]}</span>
+            <span className="text-foreground/70">{summaryParts(results)[1]}</span>
           </p>
         )}
       </div>
@@ -132,7 +132,7 @@ export default function ComparePage() {
             </span>
             <span className="font-mono tabular-nums">{progress ? `${progress.done}/${progress.total}` : ""}</span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.12]">
             <div
               className="h-full rounded-full transition-[width] duration-200"
               style={{ width: `${pct}%`, backgroundImage: "linear-gradient(90deg, #dd520c, #f7732b)" }}
@@ -143,7 +143,7 @@ export default function ComparePage() {
 
       {state === "missing" && !results && (
         <div className="flex flex-col items-start gap-3 rounded-lg border border-hairline bg-card p-6">
-          <p className="text-sm text-foreground/70">No comparison results on the bridge yet.</p>
+          <p className="text-sm text-foreground/85">No comparison results on the bridge yet.</p>
           <button onClick={runLive} className="btn-brand h-9 px-4">
             <ChartLine className="size-4" /> Run comparison
           </button>
@@ -162,7 +162,7 @@ export default function ComparePage() {
       {results && <CompareCharts results={results} />}
 
       {results && (
-        <div className="eyebrow flex items-center gap-3 text-foreground/35">
+        <div className="eyebrow flex items-center gap-3 text-foreground/60">
           <span>
             {results.runs.length} runs · {results.seeds.length} seeds · {results.maxTicks.toLocaleString("en-GB")} ticks max
           </span>

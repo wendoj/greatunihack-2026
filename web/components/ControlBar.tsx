@@ -31,7 +31,7 @@ const STRATEGIES: Strategy[] = ["ridgeline", "independent", "central"];
 function Hint({ tip, children }: { tip: string; children: React.ReactNode }) {
   return (
     <Tooltip>
-      <TooltipTrigger render={<span className="inline-flex text-foreground/45" />}>{children}</TooltipTrigger>
+      <TooltipTrigger render={<span className="inline-flex text-foreground/70" />}>{children}</TooltipTrigger>
       <TooltipContent>{tip}</TooltipContent>
     </Tooltip>
   );
@@ -113,7 +113,7 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
       </Select>
 
       <label className="btn-hw h-9 gap-1 px-2.5 normal-case" title="Seed: the same seed gives the same mountain">
-        <span className="text-foreground/40">#</span>
+        <span className="text-foreground/65">#</span>
         <input
           type="number"
           value={config.seed}
@@ -128,6 +128,7 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
         <Hint tip="Number of search agents">
           <Users className="size-4" />
         </Hint>
+        <span className="eyebrow">Agents</span>
         <div className="flex gap-0.5">
           {[3, 4, 5, 6].map((n) => (
             <button
@@ -149,6 +150,7 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
         <Hint tip="Simulation speed">
           <Gauge className="size-4" />
         </Hint>
+        <span className="eyebrow">Speed</span>
         <div className="w-20 shrink-0">
           <Slider
             min={50}
@@ -168,6 +170,7 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
         <Hint tip="Storm: radio packet loss">
           <CloudLightning className="size-4" />
         </Hint>
+        <span className="eyebrow">Storm</span>
         <div className="w-28 shrink-0">
           <Slider
             min={0}

@@ -24,7 +24,7 @@ export function MetricsHeader({ metrics, found, mock, connected, connecting, age
     <header className="flex flex-col border-b border-border">
       <div className="flex h-12 items-center gap-4 border-b border-border px-5">
         <span className="font-pixel text-xl leading-none tracking-tight text-foreground">Ridgeline</span>
-        <p className="truncate text-[13px] text-foreground/55">
+        <p className="truncate text-[13px] text-foreground/75">
           {agentCount} agents search for a missing hiker. No one is in charge, and ridges block their radios.
         </p>
         <div className="ml-auto flex shrink-0 items-center gap-4">
@@ -49,10 +49,10 @@ export function MetricsHeader({ metrics, found, mock, connected, connecting, age
           </div>
           <div className="font-pixel text-[44px] leading-none text-foreground tabular-nums">
             {(p * 100).toFixed(1)}
-            <span className="text-2xl text-foreground/50">%</span>
+            <span className="text-2xl text-foreground/70">%</span>
           </div>
         </div>
-        <div className="mb-2 h-1.5 min-w-24 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+        <div className="mb-2 h-1.5 min-w-24 flex-1 overflow-hidden rounded-full bg-white/[0.12]">
           <div
             className="h-full rounded-full transition-[width] duration-300"
             style={{
