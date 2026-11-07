@@ -13,7 +13,7 @@ interface Props {
 
 /** Whose map is drawn. The agent views are the key demo: cut an agent off and its map falls behind. */
 export function ViewSelector({ view, agents, missing, onView }: Props) {
-  const searchers = agents.filter((a) => a.role === "searcher");
+  const searchers = agents.filter((a) => a.role === "searcher").sort((x, y) => (x.id < y.id ? -1 : 1));
   const focus: AgentId | null = view === "truth" ? null : view === "base" ? "BASE" : view;
   const gap = focus ? missing[focus] ?? 0 : 0;
   const name = focus === "BASE" ? "Base" : focus;

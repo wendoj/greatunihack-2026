@@ -36,7 +36,7 @@ import { channel, PORTS, unpack } from "./wire";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const AGENT_SCRIPT = path.join(here, "agent-process.ts");
 const RUNNER_SCRIPT = path.join(here, "runner.ts");
-const RESULTS = path.join(here, "../../results.json");
+const RESULTS = process.env.RESULTS_PATH ?? path.join(here, "../../results.json");
 const PORT = Number(process.env.PORT ?? 4000);
 const KEY = process.env.RIDGELINE_KEY ?? "";
 const ORIGINS = (process.env.CORS_ORIGINS ?? "http://localhost:3000").split(",").map((s) => s.trim());
@@ -57,6 +57,8 @@ const ownTables = new Map<AgentId, string>(); // each searcher's own sweeps; kep
 const gone = new Set<AgentId>();
 let foundAtTick: number | null = null;
 let baseKnewAtTick: number | null = null;
+let launchedAt = Date.now();
+let lastTelemetryAt = 0;
 const pairs = new Map<string, { linked: boolean | null; lastOk: number }>();
 
 // ---------------------------------------------------------------------------- transport
@@ -68,7 +70,8 @@ await channel(PORTS.telemetry, (buf) => {
   if (!p || p.type !== "telemetry" || p.runId !== runId) return;
   const tel = p.tel;
   if (gone.has(tel.id)) return;
-  latest.set(tel.id, { tel, at: Date.now() });
+  lastTelemetryAt = Date.now();
+  latest.set(tel.id, { tel, at: lastTelemetryAt });
   if (tel.role === "searcher" && tel.sweeps[tel.id]) ownTables.set(tel.id, tel.sweeps[tel.id]);
   if (tel.found && foundAtTick === null && tel.found.by === tel.id) {
     foundAtTick = tel.found.atTick;
@@ -91,6 +94,7 @@ function killAll() {
 function launch() {
   killAll();
   runId++;
+  launchedAt = Date.now();
   latest.clear();
   ownTables.clear();
   gone.clear();
@@ -271,7 +275,13 @@ const server = http.createServer((req, res) => {
     res.writeHead(code, { "content-type": "application/json" }).end(JSON.stringify(body));
   const url = (req.url ?? "/").split("?")[0];
 
-  if (url === "/health") return json(200, { ok: true, runId, agents: latest.size, running });
+  if (url === "/health") {
+    // Self-test: healthy only if we actually hear our own agents over multicast. Catches a
+    // container where multicast doesn't work at deploy time, not on stage. 5 s grace after launch.
+    const now = Date.now();
+    const ok = now - lastTelemetryAt < 5000 || now - launchedAt < 5000;
+    return json(ok ? 200 : 503, { ok, runId, agents: latest.size, running });
+  }
   if (url === "/api/world") return json(200, world);
   if (url === "/api/results" && req.method === "GET") {
     if (!existsSync(RESULTS)) return json(404, { error: "no results yet" });
@@ -280,7 +290,9 @@ const server = http.createServer((req, res) => {
   if (url === "/api/compare" && req.method === "POST") {
     if (KEY && req.headers["x-ridgeline-key"] !== KEY) return json(403, { error: "presenter key required" });
     if (compareJob) return json(409, { error: "already running" });
-    compareJob = spawn(process.execPath, [RUNNER_SCRIPT, RESULTS], { stdio: ["ignore", "pipe", "inherit"] });
+    compareJob = spawn(process.execPath, [RUNNER_SCRIPT, RESULTS, process.env.COMPARE_SEEDS ?? "20"], {
+      stdio: ["ignore", "pipe", "inherit"],
+    });
     let buf = "";
     compareJob.stdout!.on("data", (d) => {
       buf += d.toString();
