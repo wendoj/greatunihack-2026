@@ -10,8 +10,6 @@ Each searcher is its own OS process with its own map and its own decisions. Agen
 
 [![Ridgeline demo video: searchers keep working through a radio blackout and the loss of a teammate, then find the hiker](docs/demo-poster.jpg)](docs/demo.mp4)
 
-*43 seconds, with sound. Click the image to play [`docs/demo.mp4`](docs/demo.mp4). Recorded on [ridgeline.wendyji.com](https://ridgeline.wendyji.com) using the in-browser simulation.*
-
 ## Results
 
 240 simulated runs (20 mountains × 4 radio packet-loss levels × 3 strategies):
