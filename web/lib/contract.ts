@@ -21,6 +21,10 @@ export interface WorldPublic {
   elevation: number[];          // CELLS values, metres (≈ 250–650)
   isPath: boolean[];            // CELLS
   isStream: boolean[];          // CELLS
+  /** Each walking path as its cells in walking order (base → col). Optional: older bridges omit it. */
+  paths?: CellIdx[][];
+  /** Each stream as its cells in downhill order. Optional: older bridges omit it. */
+  streams?: CellIdx[][];
   prior: number[];              // CELLS, sums to 1
   lkp: CellIdx;                 // last known position
   base: CellIdx;                // base station cell (map edge)

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, ArrowUpRight, Gauge, Pause, Play, RotateCcw, Users, Zap, ZapOff } from "lucide-react";
+import { Eye, EyeOff, ArrowUpRight, Gauge, Pause, Play, RotateCcw, Shuffle, Users, Zap, ZapOff } from "lucide-react";
 import type { ClientCommand, SimStatus, Strategy } from "@/lib/contract";
 import { STRATEGY_COLORS, STRATEGY_LABELS, STRATEGY_TIPS } from "@/lib/colors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +24,15 @@ interface Props {
   setReveal: (v: boolean) => void;
   config: ResetConfig;
   setConfig: (c: ResetConfig) => void;
+  /** Generate a fresh mountain (random seed) and reset onto it. */
+  onNewMap: () => void;
+}
+
+/** A random map seed, never the one currently in use. */
+export function randomSeed(current: number): number {
+  let s = current;
+  while (s === current) s = 1 + Math.floor(Math.random() * 999_999);
+  return s;
 }
 
 const STRATEGIES: Strategy[] = ["ridgeline", "independent", "central"];
@@ -52,7 +61,7 @@ function Gate({ enabled, children }: { enabled: boolean; children: React.ReactEl
 const Sep = () => <span className="h-6 w-px bg-border" aria-hidden />;
 const first = (v: number | readonly number[]) => (Array.isArray(v) ? v[0] : (v as number));
 
-export function ControlBar({ status, send, enabled, reveal, setReveal, config, setConfig }: Props) {
+export function ControlBar({ status, send, enabled, reveal, setReveal, config, setConfig, onNewMap }: Props) {
   const running = status?.running ?? false;
   const blackout = status?.blackout ?? false;
   // While dragging, show the local value; otherwise show what the sim reports.
@@ -82,6 +91,19 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
         >
           <RotateCcw className="size-3.5" /> Reset
         </button>
+      </Gate>
+      <Gate enabled={enabled}>
+        {/* key: when Gate stops wrapping this, React must mount a fresh Tooltip rather than reuse Gate's. */}
+        <Tooltip key="new-map">
+          <TooltipTrigger
+            render={<button disabled={!enabled} onClick={onNewMap} className="btn-hw h-9 px-3" />}
+          >
+            <Shuffle className="size-3.5" /> New map
+          </TooltipTrigger>
+          <TooltipContent>
+            Generate a new mountain and reset (N). Now on map #{status?.seed ?? config.seed}; Reset replays it.
+          </TooltipContent>
+        </Tooltip>
       </Gate>
 
       <Sep />

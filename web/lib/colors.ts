@@ -19,6 +19,10 @@ export const AGENT_COLORS: Record<AgentId, string> = {
   BASE: "#f8fafc",
 };
 
+/** Terrain features drawn on the map; the legend reuses these so the swatches match. */
+export const PATH_COLOR = "rgba(214,184,138,0.8)";
+export const STREAM_COLOR = "rgba(56,189,248,0.75)";
+
 export const agentColor = (id: AgentId) => AGENT_COLORS[id] ?? "#94a3b8";
 
 export const LINK_COLORS: Partial<Record<LinkStatus, string>> = {

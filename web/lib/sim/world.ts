@@ -77,11 +77,15 @@ export function generateWorld(seed: number): WorldFull {
 
   // Streams: steepest descent from 3 high cells.
   const isStream = new Array<boolean>(CELLS).fill(false);
+  const streams: CellIdx[][] = [];
   const sorted = [...Array(CELLS).keys()].sort((a, b) => elevation[b] - elevation[a]);
   for (let s = 0; s < 3; s++) {
     let c = sorted[Math.floor(rng() * CELLS * 0.25)];
+    const line: CellIdx[] = [];
+    streams.push(line);
     for (let k = 0; k < 80; k++) {
       isStream[c] = true;
+      line.push(c);
       let best = c;
       for (let dy = -1; dy <= 1; dy++)
         for (let dx = -1; dx <= 1; dx++) {
@@ -94,6 +98,7 @@ export function generateWorld(seed: number): WorldFull {
       const bx = cx(best), by = cy(best);
       if (bx === 0 || by === 0 || bx === GRID - 1 || by === GRID - 1) {
         isStream[best] = true;
+        line.push(best);
         break;
       }
       c = best;
@@ -102,11 +107,15 @@ export function generateWorld(seed: number): WorldFull {
 
   // Paths: from base towards each col, with a little wobble.
   const isPath = new Array<boolean>(CELLS).fill(false);
+  const paths: CellIdx[][] = [];
   for (const t of cols) {
     const tx = Math.round(ox + ux * t), ty = Math.round(oy + uy * t);
     let x = cx(base), y = cy(base);
+    const line: CellIdx[] = [];
+    paths.push(line);
     for (let k = 0; k < 80 && (x !== tx || y !== ty); k++) {
       isPath[idx(x, y)] = true;
+      line.push(idx(x, y));
       const sx = Math.sign(tx - x), sy = Math.sign(ty - y);
       const r = rng();
       if (r < 0.15 && sy !== 0) y += sy;
@@ -118,7 +127,10 @@ export function generateWorld(seed: number): WorldFull {
       x = Math.max(0, Math.min(GRID - 1, x));
       y = Math.max(0, Math.min(GRID - 1, y));
     }
-    if (inGrid(tx, ty)) isPath[idx(tx, ty)] = true;
+    if (inGrid(tx, ty)) {
+      isPath[idx(tx, ty)] = true;
+      if (line.at(-1) !== idx(tx, ty)) line.push(idx(tx, ty));
+    }
   }
 
   // Prior: Gaussian around the LKP, nudged downhill and onto paths/streams.
@@ -167,6 +179,8 @@ export function generateWorld(seed: number): WorldFull {
     elevation,
     isPath,
     isStream,
+    paths,
+    streams,
     prior,
     lkp,
     base,

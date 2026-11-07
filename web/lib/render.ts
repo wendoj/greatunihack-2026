@@ -1,5 +1,6 @@
 import { CELLS, GRID, type CellIdx, type Telemetry, type WorldPublic } from "./contract";
 import type { ViewData } from "./belief";
+import { PATH_COLOR, STREAM_COLOR } from "./colors";
 
 const cx = (i: number) => i % GRID;
 const cy = (i: number) => (i / GRID) | 0;
@@ -90,6 +91,26 @@ function linkCells(ctx: CanvasRenderingContext2D, flags: boolean[], cell: number
   ctx.stroke();
 }
 
+/**
+ * Draws each line through its cell centres, in order, rounding the corners with quadratic curves
+ * so a wobbly path reads as one trail instead of a staircase.
+ */
+function drawLines(ctx: CanvasRenderingContext2D, lines: number[][], cell: number) {
+  const pt = (c: number): [number, number] => [(cx(c) + 0.5) * cell, (cy(c) + 0.5) * cell];
+  ctx.beginPath();
+  for (const line of lines) {
+    if (line.length < 2) continue;
+    const pts = line.map(pt);
+    ctx.moveTo(...pts[0]);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [x, y] = pts[i], [nx, ny] = pts[i + 1];
+      ctx.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2);
+    }
+    ctx.lineTo(...pts[pts.length - 1]);
+  }
+  ctx.stroke();
+}
+
 /** Static layer at device resolution: hillshade, streams, paths. Rebuilt on world or size change. */
 export function buildTerrain(world: WorldPublic, px: number): HTMLCanvasElement {
   const out = makeCanvas(px);
@@ -99,12 +120,16 @@ export function buildTerrain(world: WorldPublic, px: number): HTMLCanvasElement 
   ctx.drawImage(hillshade(world), 0, 0, px, px);
   const cell = px / GRID;
   ctx.lineCap = "round";
-  ctx.strokeStyle = "rgba(56,189,248,0.75)";
+  ctx.lineJoin = "round";
+  // Ordered lines when the world provides them; older bridges only send per-cell flags.
+  ctx.strokeStyle = STREAM_COLOR;
   ctx.lineWidth = Math.max(1, cell * 0.12);
-  linkCells(ctx, world.isStream, cell);
-  ctx.strokeStyle = "rgba(214,184,138,0.8)";
+  if (world.streams) drawLines(ctx, world.streams, cell);
+  else linkCells(ctx, world.isStream, cell);
+  ctx.strokeStyle = PATH_COLOR;
   ctx.setLineDash([cell * 0.12, cell * 0.28]);
-  linkCells(ctx, world.isPath, cell);
+  if (world.paths) drawLines(ctx, world.paths, cell);
+  else linkCells(ctx, world.isPath, cell);
   ctx.setLineDash([]);
   return out;
 }

@@ -6,7 +6,7 @@ import { GRID, type AgentId, type Found } from "@/lib/contract";
 import { computeViews, type ViewKey } from "@/lib/belief";
 import { useSim } from "@/lib/socket";
 import { AgentCard } from "@/components/AgentCard";
-import { ControlBar, type ResetConfig } from "@/components/ControlBar";
+import { ControlBar, randomSeed, type ResetConfig } from "@/components/ControlBar";
 import { Legend } from "@/components/Legend";
 import { MapCanvas } from "@/components/MapCanvas";
 import { MetricsHeader } from "@/components/MetricsHeader";
@@ -65,10 +65,18 @@ export default function LivePage() {
   }, [bannerKey]);
   const banner = bannerKey && bannerKey !== hiddenKey ? bannerData : null;
 
+  const newMap = (cfg: ResetConfig) => {
+    const seed = randomSeed(cfg.seed);
+    setConfig({ ...cfg, seed });
+    send({ action: "reset", seed, strategy: cfg.strategy, agents: cfg.agents });
+  };
+
   // Keyboard shortcuts for recording the demo.
   const live = useRef({ status, config, enabled, agents });
+  const newMapRef = useRef(newMap);
   useLayoutEffect(() => {
     live.current = { status, config, enabled, agents };
+    newMapRef.current = newMap;
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -91,6 +99,7 @@ export default function LivePage() {
         send({ action: status?.running ? "pause" : "start" });
       } else if (k === "b") send({ action: "blackout", value: !status?.blackout });
       else if (k === "r") send({ action: "reset", seed: config.seed, strategy: config.strategy, agents: config.agents });
+      else if (k === "n") newMapRef.current(config);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -202,6 +211,7 @@ export default function LivePage() {
         setReveal={setReveal}
         config={config}
         setConfig={setConfig}
+        onNewMap={() => newMap(config)}
       />
       )}
     </div>
