@@ -6,6 +6,12 @@ Built at GreatUniHack 2026 for the Neptune North challenge: *design an approach 
 
 Each searcher is its own OS process with its own map and its own decisions. Agents share what they've searched only when their simulated radios can reach each other. When cut off, they keep searching and stay off ground they expect teammates to be covering. When they reconnect, their maps merge without conflicts. If one is killed, the others take over its area.
 
+## Demo
+
+[![Ridgeline demo video: searchers keep working through a radio blackout and the loss of a teammate, then find the hiker](docs/demo-poster.jpg)](docs/demo.mp4)
+
+*43 seconds, with sound. Click the image to play [`docs/demo.mp4`](docs/demo.mp4). Recorded on [ridgeline.wendyji.com](https://ridgeline.wendyji.com) using the in-browser simulation.*
+
 ## Results
 
 240 simulated runs (20 mountains × 4 radio packet-loss levels × 3 strategies):

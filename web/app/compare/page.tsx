@@ -106,7 +106,6 @@ export default function ComparePage() {
         <Link href="/" className="btn-hw h-8 px-3">
           <ArrowLeft className="size-3.5" /> Live
         </Link>
-        <span className="font-pixel text-xl leading-none">Ridgeline</span>
         {mock && (
           <span className="eyebrow ml-auto flex items-center gap-1.5">
             <span className="size-1.5 bg-brand" /> mock data
@@ -115,7 +114,7 @@ export default function ComparePage() {
       </header>
 
       <div className="flex flex-col gap-4 pt-2">
-        <h1 className="font-pixel text-5xl leading-[1.05]">When the radios fail.</h1>
+        <h1 className="font-pixel text-5xl leading-[1.05]">How do we compare?</h1>
         {results && (
           <p className="max-w-4xl text-[26px] leading-tight tracking-tight text-foreground">
             {summaryParts(results)[0]}
