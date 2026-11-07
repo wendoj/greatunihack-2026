@@ -146,6 +146,11 @@ export class SimAgent {
   sweptCell = -1;
   /** Engine-side flag: when false, the casualty can't be detected (coverage-only runs). */
   canDetect = true;
+  /**
+   * Live processes have no all-seeing engine, so they count duplicates from their own
+   * merged knowledge. The in-memory engine leaves this off and counts against truth.
+   */
+  countOwnDuplicates = false;
 
   constructor(opts: {
     id: AgentId;
@@ -503,6 +508,7 @@ export class SimAgent {
     this.ownRecent.push(c);
     if (this.ownRecent.length > 64) this.ownRecent.shift();
     this.stats.sweeps++;
+    if (this.countOwnDuplicates && this.tick - this.lastSwept[c] <= 30) this.stats.duplicateSweeps++;
     this.sweptCell = c;
     this.lastSwept[c] = this.tick;
     if (this.countsCache) this.countsCache[c]++;

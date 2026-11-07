@@ -186,33 +186,7 @@ export class SimEngine {
   }
 
   telemetry(tickMs: number): Telemetry[] {
-    return this.agents
-      .filter((a) => a.alive)
-      .map((a) => {
-        const sweeps: SweepTable = {};
-        if (a.role === "searcher") sweeps[a.id] = enc(a.ownSnap.data);
-        for (const [j, s] of a.others) sweeps[j] = enc(s.data);
-        const lastHeard: Record<AgentId, number> = {};
-        for (const [j, t] of a.lastHeard) lastHeard[j] = Math.max(0, (a.tick - 1 - t) * tickMs);
-        return {
-          id: a.id,
-          role: a.role,
-          strategy: a.strategy,
-          tick: a.tick,
-          pos: a.pos,
-          target: a.target,
-          path: a.path.slice(),
-          mode: a.mode,
-          reason: a.reason,
-          radioOn: !a.offline,
-          links: { ...a.links },
-          lastHeard,
-          sweeps,
-          found: a.found,
-          baseKnowsFound: a.baseKnowsFound,
-          stats: { ...a.stats },
-        };
-      });
+    return this.agents.filter((a) => a.alive).map((a) => agentTelemetry(a, tickMs));
   }
 
   /** Truth view: every searcher's own table, alive or not. */
@@ -247,4 +221,31 @@ export class SimEngine {
       { sweeps: 0, dup: 0 },
     );
   }
+}
+
+/** Telemetry for one agent. Shared by the in-memory engine and the live agent process. */
+export function agentTelemetry(a: SimAgent, tickMs: number, encode: (u8: Uint8Array) => string = enc): Telemetry {
+  const sweeps: SweepTable = {};
+  if (a.role === "searcher") sweeps[a.id] = encode(a.ownSnap.data);
+  for (const [j, s] of a.others) sweeps[j] = encode(s.data);
+  const lastHeard: Record<AgentId, number> = {};
+  for (const [j, t] of a.lastHeard) lastHeard[j] = Math.max(0, (a.tick - 1 - t) * tickMs);
+  return {
+    id: a.id,
+    role: a.role,
+    strategy: a.strategy,
+    tick: a.tick,
+    pos: a.pos,
+    target: a.target,
+    path: a.path.slice(),
+    mode: a.mode,
+    reason: a.reason,
+    radioOn: !a.offline,
+    links: { ...a.links },
+    lastHeard,
+    sweeps,
+    found: a.found,
+    baseKnowsFound: a.baseKnowsFound,
+    stats: { ...a.stats },
+  };
 }

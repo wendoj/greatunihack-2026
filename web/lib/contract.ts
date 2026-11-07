@@ -1,4 +1,7 @@
 // Shared contract — must match the backend exactly (frontend.md §2). Do not edit casually.
+/** Bump on any breaking change. The bridge sends it in `world`; the client warns on mismatch. */
+export const CONTRACT_VERSION = 2;
+
 export const GRID = 40;                       // 40×40 cells
 export const CELLS = GRID * GRID;             // 1600
 export type CellIdx = number;                 // y * GRID + x
@@ -78,7 +81,8 @@ export interface Telemetry {
   radioOn: boolean;
   links: Record<AgentId, LinkStatus>;   // result of the last packet from each peer
   lastHeard: Record<AgentId, number>;   // ms since that peer was last heard
-  sweeps: SweepTable;           // this agent's merged view
+  /** This agent's merged view. Bridge → browser only: a missing key means "unchanged since your last snapshot". */
+  sweeps: SweepTable;
   found: Found | null;
   baseKnowsFound: boolean;
   stats: { sweeps: number; duplicateSweeps: number };
@@ -94,6 +98,7 @@ export interface Metrics {
   baseKnewAtTick: number | null;
 }
 export interface SimStatus {
+  runId: number;                 // changes on every reset; drop data from other runs
   running: boolean;
   strategy: Strategy;
   seed: number;
@@ -103,7 +108,7 @@ export interface SimStatus {
   tickMs: number;
 }
 export interface Snapshot { t: number; status: SimStatus; agents: Telemetry[]; metrics: Metrics }
-export interface SimEvent { t: number; kind: 'found' | 'base_informed' | 'peer_lost' | 'peer_joined' | 'agent_killed' | 'radio' | 'storm' | 'blackout' | 'reset'; agent?: AgentId; peer?: AgentId; text: string }
+export interface SimEvent { t: number; runId?: number; kind: 'found' | 'base_informed' | 'peer_lost' | 'peer_joined' | 'agent_killed' | 'radio' | 'storm' | 'blackout' | 'reset'; agent?: AgentId; peer?: AgentId; text: string }
 
 export type ClientCommand =
   | { action: 'start' } | { action: 'pause' }
@@ -114,8 +119,11 @@ export type ClientCommand =
   | { action: 'kill'; agent: AgentId }
   | { action: 'speed'; tickMs: number };
 
+/** Payload of the 'world' Socket.IO event. */
+export type WorldMsg = WorldPublic & { casualty: CellIdx; runId: number; contractVersion: number };
+
 // Socket.IO event names
-//   server → client: 'world' (WorldPublic & { casualty: CellIdx }), 'snapshot' (Snapshot, ~5 Hz), 'event' (SimEvent), 'compare:progress' ({done,total})
+//   server → client: 'world' (WorldMsg), 'role' ({ presenter: boolean }), 'snapshot' (Snapshot, ~5 Hz), 'event' (SimEvent), 'compare:progress' ({done,total})
 //   client → server: 'command' (ClientCommand)
 
 export interface CompareResults {
