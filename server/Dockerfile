@@ -3,8 +3,9 @@
 # Build context: repo root (the bridge reuses the agent code in web/lib/sim).
 FROM oven/bun:1.3.3
 WORKDIR /app/server
-COPY server/package.json server/bun.lock ./
-RUN bun install --frozen-lockfile --production
+# The lockfile pins versions; the glob keeps the build working if it's ever missing.
+COPY server/package.json server/bun.lock* ./
+RUN if [ -f bun.lock ]; then bun install --frozen-lockfile --production; else bun install --production; fi
 COPY web/lib/contract.ts /app/web/lib/contract.ts
 COPY web/lib/sim /app/web/lib/sim
 COPY server/src ./src
