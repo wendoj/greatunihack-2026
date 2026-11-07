@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ZapOff } from "lucide-react";
+import { Eye, RefreshCw, Radio, ZapOff } from "lucide-react";
 import { GRID, type AgentId, type Found } from "@/lib/contract";
 import { computeViews, type ViewKey } from "@/lib/belief";
 import { useSim } from "@/lib/socket";
@@ -16,11 +16,14 @@ import { ViewSelector } from "@/components/ViewSelector";
 const cellStr = (c: number) => `(${c % GRID},${Math.floor(c / GRID)})`;
 
 export default function LivePage() {
-  const { world, snapshot, events, lost, send, frames, mock, connected, connecting } = useSim();
+  const { world, snapshot, events, lost, send, frames, mock, connected, connecting, watching, bridgeAvailable, contractMismatch, switchToLive, runOwn } =
+    useSim();
   const [chosenView, setView] = useState<ViewKey>("truth");
   const [reveal, setReveal] = useState(false);
   const [edited, setConfig] = useState<ResetConfig | null>(null);
-  const enabled = connected || mock;
+  // Watchers (live, no presenter key) see everything but can't change the shared sim.
+  const enabled = (connected || mock) && !watching;
+  const disconnected = !mock && !connecting && !connected && !!world;
 
   const status = snapshot?.status ?? null;
   const agents = useMemo(() => snapshot?.agents ?? [], [snapshot]);
@@ -99,6 +102,21 @@ export default function LivePage() {
 
   return (
     <div className="flex h-dvh min-h-[640px] flex-col overflow-hidden">
+      {(bridgeAvailable || contractMismatch) && (
+        <div className="flex items-center justify-center gap-3 border-b border-border bg-brand/10 px-5 py-2 text-[13px]">
+          {bridgeAvailable ? (
+            <>
+              <Radio className="size-4 text-brand" />
+              The live simulation bridge is now reachable.
+              <button onClick={switchToLive} className="btn-brand h-7 px-3">
+                Switch to live
+              </button>
+            </>
+          ) : (
+            <>The bridge speaks a different contract version (v{world?.contractVersion}); some data may look wrong.</>
+          )}
+        </div>
+      )}
       <MetricsHeader
         metrics={snapshot?.metrics ?? null}
         found={found}
@@ -110,7 +128,7 @@ export default function LivePage() {
       <div className="flex min-h-0 flex-1">
         <main className="flex min-w-0 flex-1 gap-6 px-5 py-4">
           <Legend />
-          <div className="min-w-0 flex-1">
+          <div className={`min-w-0 flex-1 transition-[filter] ${disconnected ? "grayscale" : ""}`}>
             {world ? (
               <MapCanvas
                 world={world}
@@ -140,7 +158,14 @@ export default function LivePage() {
                     </div>
                   </div>
                 )}
-                {status && !status.running && snapshot && snapshot.metrics.tick === 0 && (
+                {disconnected && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-black/55">
+                    <div className="flex items-center gap-2.5 rounded-lg border border-hairline bg-card px-5 py-3 text-sm">
+                      <RefreshCw className="size-4 animate-spin text-brand" /> Bridge lost. Reconnecting…
+                    </div>
+                  </div>
+                )}
+                {!watching && status && !status.running && snapshot && snapshot.metrics.tick === 0 && (
                   <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-2 rounded-lg border border-hairline bg-black/80 px-6 py-4 text-center shadow-xl backdrop-blur">
                       <div className="font-pixel text-2xl leading-none">Last seen at the pin.</div>
@@ -170,6 +195,17 @@ export default function LivePage() {
           <EventFeed events={events} />
         </aside>
       </div>
+      {watching ? (
+        <footer className="flex items-center gap-3 border-t border-border px-5 py-3">
+          <span className="eyebrow flex items-center gap-2">
+            <Eye className="size-4 text-brand" /> Watching the live simulation
+          </span>
+          <span className="text-[13px] text-foreground/70">The presenter controls this run.</span>
+          <button onClick={runOwn} className="btn-brand ml-auto h-9 px-4">
+            Run your own
+          </button>
+        </footer>
+      ) : (
       <ControlBar
         status={status}
         send={send}
@@ -179,6 +215,7 @@ export default function LivePage() {
         config={config}
         setConfig={setConfig}
       />
+      )}
     </div>
   );
 }

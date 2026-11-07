@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ChartLine } from "lucide-react";
 import type { CompareResults, Strategy } from "@/lib/contract";
-import { BRIDGE_URL, useSim } from "@/lib/socket";
+import { BRIDGE_URL, presenterKey, useSim } from "@/lib/socket";
 import { CompareCharts, summaryParts } from "@/components/CompareCharts";
 
 const JOB = {
@@ -18,7 +18,9 @@ const JOB = {
 let cached: CompareResults | null = null;
 
 export default function ComparePage() {
-  const { mock, connecting, compareProgress } = useSim();
+  const { mock: mockSource, watching, connecting, compareProgress } = useSim();
+  // Watchers can't start a live comparison, so they get the in-browser one (labelled mock).
+  const mock = mockSource || watching;
   const [results, setResults] = useState<CompareResults | null>(cached);
   const [workerProgress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "missing" | "running" | "error">("idle");
@@ -69,7 +71,7 @@ export default function ComparePage() {
     setState("running");
     setProgress(null);
     try {
-      const res = await fetch(`${BRIDGE_URL}/api/compare`, { method: "POST" });
+      const res = await fetch(`${BRIDGE_URL}/api/compare`, { method: "POST", headers: { "x-ridgeline-key": presenterKey() } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (e) {
       setState("error");
