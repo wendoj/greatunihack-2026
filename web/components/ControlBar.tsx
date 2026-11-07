@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CloudLightning, Eye, EyeOff, Gauge, Pause, Play, RotateCcw, Users, Zap, ZapOff } from "lucide-react";
+import Link from "next/link";
+import { Eye, EyeOff, ArrowUpRight, Gauge, Pause, Play, RotateCcw, Users, Zap, ZapOff } from "lucide-react";
 import type { ClientCommand, SimStatus, Strategy } from "@/lib/contract";
 import { STRATEGY_COLORS, STRATEGY_LABELS, STRATEGY_TIPS } from "@/lib/colors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -55,10 +56,8 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
   const running = status?.running ?? false;
   const blackout = status?.blackout ?? false;
   // While dragging, show the local value; otherwise show what the sim reports.
-  const [dragStorm, setDragStorm] = useState<number | null>(null);
-  const [dragSpeed, setDragSpeed] = useState<number | null>(null);
-  const storm = dragStorm ?? Math.round((status?.storm ?? 0) * 100);
-  const speed = dragSpeed ?? status?.tickMs ?? 250;
+    const [dragSpeed, setDragSpeed] = useState<number | null>(null);
+    const speed = dragSpeed ?? status?.tickMs ?? 250;
   const dirty =
     !!status && (status.strategy !== config.strategy || status.seed !== config.seed || status.agentCount !== config.agents);
 
@@ -79,7 +78,7 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
           disabled={!enabled}
           onClick={() => send({ action: "reset", seed: config.seed, strategy: config.strategy, agents: config.agents })}
           className={cn("btn-hw h-9 px-3", dirty && "border-brand/70 text-brand")}
-          title={dirty ? "Reset to apply the new settings" : "Reset (R)"}
+          title={dirty ? "Reset to apply the new settings" : "Reset"}
         >
           <RotateCcw className="size-3.5" /> Reset
         </button>
@@ -111,18 +110,6 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
           ))}
         </SelectContent>
       </Select>
-
-      <label className="btn-hw h-9 gap-1 px-2.5 normal-case" title="Seed: the same seed gives the same mountain">
-        <span className="text-foreground/65">#</span>
-        <input
-          type="number"
-          value={config.seed}
-          disabled={!enabled}
-          onChange={(e) => setConfig({ ...config, seed: Number(e.target.value) || 0 })}
-          className="w-10 bg-transparent font-mono text-xs text-foreground tabular-nums outline-none"
-          aria-label="Seed"
-        />
-      </label>
 
       <div className="flex items-center gap-2">
         <Hint tip="Number of search agents">
@@ -166,28 +153,6 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5">
-        <Hint tip="Storm: radio packet loss">
-          <CloudLightning className="size-4" />
-        </Hint>
-        <span className="eyebrow">Storm</span>
-        <div className="w-28 shrink-0">
-          <Slider
-            min={0}
-            max={90}
-            step={5}
-            disabled={!enabled}
-            value={[storm]}
-            onValueChange={(v) => setDragStorm(first(v))}
-            onValueCommitted={(v) => {
-              send({ action: "storm", value: first(v) / 100 });
-              setDragStorm(null);
-            }}
-          />
-        </div>
-        <span className="w-8 font-mono text-xs text-foreground/80 tabular-nums">{storm}%</span>
-      </div>
-
       <div className="ml-auto flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger
@@ -202,7 +167,7 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
           >
             {reveal ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
           </TooltipTrigger>
-          <TooltipContent>{reveal ? "Hide the hiker" : "Reveal the hiker"} (V)</TooltipContent>
+          <TooltipContent>{reveal ? "Hide the hiker" : "Reveal the hiker"}</TooltipContent>
         </Tooltip>
         <Gate enabled={enabled}>
           <button
@@ -217,6 +182,9 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
             {blackout ? "End blackout" : "Blackout"}
           </button>
         </Gate>
+        <Link href="/compare" className="btn-hw h-9 px-3">
+          Compare <ArrowUpRight className="size-3.5" />
+        </Link>
       </div>
     </footer>
   );
