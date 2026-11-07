@@ -5,18 +5,16 @@ import { Eye, RefreshCw, Radio, ZapOff } from "lucide-react";
 import { GRID, type AgentId, type Found } from "@/lib/contract";
 import { computeViews, type ViewKey } from "@/lib/belief";
 import { useSim } from "@/lib/socket";
-import { AgentPanel } from "@/components/AgentPanel";
+import { AgentCard } from "@/components/AgentCard";
 import { ControlBar, type ResetConfig } from "@/components/ControlBar";
-import { EventFeed } from "@/components/EventFeed";
 import { Legend } from "@/components/Legend";
 import { MapCanvas } from "@/components/MapCanvas";
 import { MetricsHeader } from "@/components/MetricsHeader";
-import { ViewSelector } from "@/components/ViewSelector";
 
 const cellStr = (c: number) => `(${c % GRID},${Math.floor(c / GRID)})`;
 
 export default function LivePage() {
-  const { world, snapshot, events, lost, send, frames, mock, connected, connecting, watching, bridgeAvailable, contractMismatch, switchToLive, runOwn } =
+  const { world, snapshot, lost, send, frames, mock, connected, connecting, watching, bridgeAvailable, contractMismatch, switchToLive, runOwn } =
     useSim();
   const [chosenView, setView] = useState<ViewKey>("truth");
   const [reveal, setReveal] = useState(false);
@@ -98,7 +96,7 @@ export default function LivePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [send]);
 
-  const searcherCount = agents.filter((a) => a.role === "searcher").length || status?.agentCount || 5;
+  const selectedAgent = selected ? (agents.find((a) => a.id === selected) ?? lost.find((a) => a.id === selected)) : undefined;
 
   return (
     <div className="flex h-dvh min-h-[640px] flex-col overflow-hidden">
@@ -117,14 +115,7 @@ export default function LivePage() {
           )}
         </div>
       )}
-      <MetricsHeader
-        metrics={snapshot?.metrics ?? null}
-        found={found}
-        mock={mock}
-        connected={connected}
-        connecting={connecting}
-        agentCount={searcherCount}
-      />
+      <MetricsHeader probSearched={snapshot?.metrics.probSearched ?? 0} />
       <div className="flex min-h-0 flex-1">
         <main className="flex min-w-0 flex-1 gap-6 px-5 py-4">
           <Legend />
@@ -139,6 +130,16 @@ export default function LivePage() {
                 reveal={reveal}
                 onSelect={select}
               >
+                {selectedAgent && (
+                  <AgentCard
+                    agent={selectedAgent}
+                    lost={!agents.includes(selectedAgent)}
+                    missing={computed?.missing[selectedAgent.id] ?? 0}
+                    onClose={() => setView("truth")}
+                    send={send}
+                    enabled={enabled}
+                  />
+                )}
                 {status?.blackout && (
                   <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center">
                     <div className="flex items-center gap-2 rounded-lg border border-red-400/50 bg-black/80 px-4 py-2 font-mono text-[11px] tracking-wider text-red-200 uppercase shadow-lg backdrop-blur">
@@ -169,7 +170,7 @@ export default function LivePage() {
                   <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-2 rounded-lg border border-hairline bg-black/80 px-6 py-4 text-center shadow-xl backdrop-blur">
                       <div className="font-pixel text-2xl leading-none">Last seen at the pin.</div>
-                      <div className="eyebrow">Press space to send the team out</div>
+                      <div className="eyebrow">Press start to send the team out</div>
                     </div>
                   </div>
                 )}
@@ -181,19 +182,6 @@ export default function LivePage() {
             )}
           </div>
         </main>
-        <aside className="flex w-[360px] shrink-0 flex-col border-l border-border">
-          <ViewSelector view={view} agents={agents} missing={computed?.missing ?? {}} onView={setView} />
-          <AgentPanel
-            agents={agents}
-            lost={lost}
-            selected={selected}
-            missing={computed?.missing ?? {}}
-            onSelect={select}
-            send={send}
-            enabled={enabled}
-          />
-          <EventFeed events={events} />
-        </aside>
       </div>
       {watching ? (
         <footer className="flex items-center gap-3 border-t border-border px-5 py-3">

@@ -19,21 +19,11 @@ const Ring = ({ color, dash, slash }: { color: string; dash?: string; slash?: bo
   </svg>
 );
 
-const KEYS: [string, string][] = [
-  ["␣", "start"],
-  ["B", "blackout"],
-  ["R", "reset"],
-  ["1–6", "agent"],
-  ["T", "truth"],
-  ["0", "base"],
-  ["V", "reveal"],
-];
-
 const Divider = () => <li className="my-1.5 h-px bg-border" aria-hidden />;
 
 export function Legend() {
   return (
-    <aside className="flex w-44 shrink-0 flex-col justify-between overflow-y-auto py-1 text-[12.5px] text-foreground/85">
+    <aside className="flex w-36 shrink-0 flex-col overflow-y-auto py-1 text-[12.5px] text-foreground/85">
       <ul className="flex flex-col gap-1.5">
         <li className="mb-1 flex flex-col gap-1">
           <div className="h-1.5 rounded-full bg-gradient-to-r from-amber-400/10 via-amber-400/70 to-red-500" />
@@ -92,16 +82,6 @@ export function Legend() {
         <Item sw={<Ring color="#6b7280" dash="2 2" />}>radio off</Item>
       </ul>
 
-      <ul className="mt-4 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 font-mono text-[11px] uppercase">
-        {KEYS.map(([k, v]) => (
-          <li key={k} className="contents">
-            <kbd className="min-w-6 rounded border border-hairline bg-white/[0.03] px-1 text-center text-foreground/85">
-              {k}
-            </kbd>
-            <span className="text-foreground/65">{v}</span>
-          </li>
-        ))}
-      </ul>
     </aside>
   );
 }

@@ -41,7 +41,7 @@ const FADE_MS = 600;
 export function MapCanvas({ world, frames, views, view, selected, reveal, onSelect, children }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [size, setSize] = useState(0);
+  const [size, setSize] = useState({ w: 0, h: 0 });
   const [hover, setHover] = useState<Hover | null>(null);
   const live = useRef({ views, view, selected, reveal, world });
   useLayoutEffect(() => {
@@ -52,23 +52,26 @@ export function MapCanvas({ world, frames, views, view, selected, reveal, onSele
   useEffect(() => {
     const el = wrapRef.current!;
     const ro = new ResizeObserver(([e]) => {
-      const s = Math.floor(Math.min(e.contentRect.width, e.contentRect.height));
-      setSize(s > 0 ? s : 0);
+      // Fill the space at 4:3; the square world is stretched horizontally to fit.
+      const w = Math.floor(Math.min(e.contentRect.width, (e.contentRect.height * 4) / 3));
+      setSize(w > 0 ? { w, h: Math.floor((w * 3) / 4) } : { w: 0, h: 0 });
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
   useEffect(() => {
-    if (!size) return;
+    if (!size.w) return;
     const canvas = canvasRef.current!;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const px = Math.round(size * dpr);
+    const px = Math.round(size.w * dpr);
+    const py = Math.round(size.h * dpr);
     canvas.width = px;
-    canvas.height = px;
+    canvas.height = py;
     const ctx = canvas.getContext("2d")!;
     const terrain = buildTerrain(world, px);
-    const cell = px / GRID;
+    const cellX = px / GRID;
+    const cell = py / GRID; // marker sizes use the shorter cell side so they stay round
     const R = Math.max(7 * dpr, cell * 0.55);
 
     let overlay: HTMLCanvasElement | null = null;
@@ -79,7 +82,7 @@ export function MapCanvas({ world, frames, views, view, selected, reveal, onSele
     let lastFound = false;
     let raf = 0;
 
-    const toPx = (p: Pt) => ({ x: p.x * cell, y: p.y * cell });
+    const toPx = (p: Pt) => ({ x: p.x * cellX, y: p.y * cell });
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
@@ -101,16 +104,16 @@ export function MapCanvas({ world, frames, views, view, selected, reveal, onSele
         lastFound = foundNow;
       }
 
-      ctx.clearRect(0, 0, px, px);
-      ctx.drawImage(terrain, 0, 0);
+      ctx.clearRect(0, 0, px, py);
+      ctx.drawImage(terrain, 0, 0, px, py);
       if (overlay) {
         const t = fadeFrom ? Math.min(1, (now - fadeAt) / FADE_MS) : 1;
         if (fadeFrom && t < 1) {
           ctx.globalAlpha = 1 - t;
-          ctx.drawImage(fadeFrom, 0, 0);
+          ctx.drawImage(fadeFrom, 0, 0, px, py);
           ctx.globalAlpha = t;
         } else fadeFrom = null;
-        ctx.drawImage(overlay, 0, 0);
+        ctx.drawImage(overlay, 0, 0, px, py);
         ctx.globalAlpha = 1;
       }
 
@@ -233,7 +236,7 @@ export function MapCanvas({ world, frames, views, view, selected, reveal, onSele
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [size, world, frames]);
+  }, [size.w, size.h, world, frames]);
 
   const cellAt = (e: React.MouseEvent) => {
     const r = canvasRef.current!.getBoundingClientRect();
@@ -255,7 +258,7 @@ export function MapCanvas({ world, frames, views, view, selected, reveal, onSele
         best = id;
       }
     }
-    const cell = canvasRef.current!.width / GRID;
+    const cell = canvasRef.current!.height / GRID;
     if (best && bestD < Math.max(14 * scale, cell)) onSelect(best);
   };
 
@@ -263,11 +266,11 @@ export function MapCanvas({ world, frames, views, view, selected, reveal, onSele
 
   return (
     <div ref={wrapRef} className="relative flex h-full w-full items-center justify-center">
-      <div className="relative" style={{ width: size, height: size }}>
+      <div className="relative" style={{ width: size.w, height: size.h }}>
         <canvas
           ref={canvasRef}
           className="block h-full w-full cursor-crosshair rounded-lg ring-1 ring-hairline"
-          style={{ width: size, height: size }}
+          style={{ width: size.w, height: size.h }}
           onMouseMove={(e) => {
             const c = cellAt(e);
             setHover(c ? { cell: c.cell, left: c.left, top: c.top } : null);
@@ -280,8 +283,8 @@ export function MapCanvas({ world, frames, views, view, selected, reveal, onSele
           <div
             className="pointer-events-none absolute z-20 rounded-lg border border-hairline bg-black/85 px-3 py-2 font-mono text-[11px] leading-relaxed text-foreground shadow-lg backdrop-blur tabular-nums"
             style={{
-              left: Math.min(hover.left + 14, size - 170),
-              top: Math.min(hover.top + 14, size - 96),
+              left: Math.min(hover.left + 14, size.w - 170),
+              top: Math.min(hover.top + 14, size.h - 96),
             }}
           >
             <div className="font-semibold">
