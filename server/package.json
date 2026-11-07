@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev:sim": "bun src/live/bridge.ts",
+    "dev:mesh": "bun src/main.ts",
+    "agent": "bun src/agent-node.ts",
     "compare": "bun src/live/runner.ts results.json 20",
     "typecheck": "tsc -p tsconfig.live.json"
   },

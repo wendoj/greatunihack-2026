@@ -25,6 +25,8 @@ flowchart LR
 | Agent (searcher or BASE) | [server/src/live/agent-process.ts](server/src/live/agent-process.ts), driving [web/lib/sim/agent.ts](web/lib/sim/agent.ts) | One OS process each, spawned by the bridge |
 | Bridge | [server/src/live/bridge.ts](server/src/live/bridge.ts) | One process: HTTP + Socket.IO on `:4000` |
 | Wire format | [server/src/live/wire.ts](server/src/live/wire.ts) | UDP multicast `239.255.42.99`, ports 41235/6/7, deflated JSON |
+| Decentralised mesh | [server/src/mesh.ts](server/src/mesh.ts) | UDP beacon discovery (broadcast + multicast) + TCP mesh, flood/gossip with dedup |
+| Standalone agent node | [server/src/agent-node.ts](server/src/agent-node.ts) | One OS process each, joined to the mesh — no bridge, no internet |
 | Comparison runner | [server/src/live/runner.ts](server/src/live/runner.ts) | A child process started by `POST /api/compare` |
 | Live view | [web/app/page.tsx](web/app/page.tsx) | Next.js page; canvas map plus panels |
 | In-browser mock | [web/lib/mock.ts](web/lib/mock.ts), driving [web/lib/sim/engine.ts](web/lib/sim/engine.ts) | Same agent class, with messages delivered in memory |
@@ -128,9 +130,32 @@ From `bun run compare`: 20 seeds × 4 packet-loss levels × 3 strategies = 240 r
 
 The probability-searched curves come from a second pass with detection switched off. Otherwise a run that ends at the find would cut its own curve short.
 
+## Decentralised backend (no internet)
+
+The bridge demo keeps every agent in one container because multicast doesn't cross Docker overlay networks. When the internet is unavailable and agents must run on separate devices, the same `SimAgent` runs over a different transport:
+
+```mermaid
+flowchart LR
+  subgraph LAN["local network (venue Wi-Fi, phone hotspot with mobile data OFF, travel router)"]
+    A[agent A] <-->|TCP| B[agent B]
+    B <-->|TCP| C[agent C]
+    A <-->|TCP| C
+    BASE[BASE] <-->|TCP| A & B & C
+  end
+  A & B & C & BASE -. "UDP beacon (broadcast + multicast, TTL 1)" .-> LAN
+```
+
+| Stage | Mechanism |
+|---|---|
+| **Discovery** | Every node broadcasts/multicasts a small `{ id, tcpPort }` beacon on one UDP port. Peers on the same network hear it. The lexicographically larger id dials the smaller, so each pair opens exactly one TCP link. Static `--peers id@host:port` entries work even where broadcast/multicast is blocked. |
+| **Data** | Persistent TCP links carry newline-delimited JSON. A message `{ from, seq, ttl, type, body }` is flooded: each node forwards it to its other peers, and an `(origin, seq)` seen-set stops loops, so every node receives it exactly once regardless of hop count. |
+| **Radio model** | Unchanged. The mesh delivers *everything*; the receiver still runs `canHear` (range, line of sight, storm) and drops what its radio couldn't reach. Multi-hop delivery is the transport, the radio check is the physics. |
+
+[`server/src/mesh.ts`](server/src/mesh.ts) implements the transport; [`server/src/agent-node.ts`](server/src/agent-node.ts) is one agent = one process joined to it, reusing the same wire format (`stateToJson`/`stateFromJson`) and the same `SimAgent`. [`server/src/main.ts`](server/src/main.ts) launches a full team on one machine for local demos; across real devices, run `bun src/agent-node.ts …` on each with one shared `--seed/--salt/--hash` (printed by `--gen-config`). The mesh never carries a goal, only `state`, so "no central decision-maker" still holds.
+
 ## Known limits
 
 - **The radio is a model, not RF:** a range limit, line of sight over a terrain grid with 12 m of diffraction allowance, and an independent packet-loss draw.
-- **Agents run in one container on one machine.** They are separate processes, but multicast doesn't cross Docker overlay networks, so splitting agents across hosts needs a different transport (LoRa, Bluetooth mesh or UDP unicast gossip). The agent logic would not change.
+- **The live bridge demo runs in one container on one machine.** Multicast doesn't cross Docker overlay networks, so the browser demo keeps the team together. Splitting agents across devices uses the decentralised mesh above instead; the agent logic does not change.
 - **One shared simulation per bridge.** Viewers without the presenter key get read-only access.
-- The early prototype in `server/src/{agent,transport,main}.ts` is kept for reference. The live system is `server/src/live/`.
+- The multicast bridge is `server/src/live/`; the decentralised no-internet transport is `server/src/mesh.ts` + `server/src/agent-node.ts`, launched locally by `server/src/main.ts`.

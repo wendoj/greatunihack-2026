@@ -41,6 +41,25 @@ Open http://localhost:3000, press **Space** to start, then try **B** (radio blac
 
 **Deploy:** `docker-compose.yml` runs both services. It's meant for a Dokploy "Docker Compose" app, with domains set in Dokploy.
 
+## No internet (decentralised)
+
+For a fully offline demo, the same agent code runs on a local mesh — no server, no internet. Each device runs one agent process; they discover each other and gossip state directly.
+
+```bash
+# Generate one shared secret (once; copy the --salt/--hash to every device):
+cd server && bun src/agent-node.ts --gen-config --seed 39
+
+# One agent per device (share the same --seed/--salt/--hash):
+bun src/agent-node.ts --id A --role searcher --seed 39 --salt <salt> --hash <hash>
+bun src/agent-node.ts --id B --role searcher --seed 39 --salt <salt> --hash <hash>
+bun src/agent-node.ts --id BASE --role base    --seed 39 --salt <salt> --hash <hash>
+
+# Or launch a whole team on one machine for a local demo:
+cd server && bun run dev:mesh
+```
+
+Discovery uses UDP broadcast + multicast (TTL 1, loopback), so it works on venue Wi-Fi, a phone hotspot with mobile data off, or a travel router. Where that's blocked, pass `--peers id@host:port`. Type `off`/`on` to cut/restore one device's radio, `status` for its map, `quit` to leave.
+
 ## How it works
 
 See **[ARCHITECTURE.md](ARCHITECTURE.md)** for:
@@ -53,5 +72,6 @@ See **[ARCHITECTURE.md](ARCHITECTURE.md)** for:
 | Folder | What's inside |
 |---|---|
 | `server/src/live/` | Bridge, agent process, multicast wire format, comparison runner |
+| `server/src/mesh.ts`, `server/src/agent-node.ts`, `server/src/main.ts` | Decentralised no-internet transport (discovery + TCP mesh + gossip) and the standalone agent |
 | `web/lib/sim/` | The agent itself (shared by live, mock and benchmark): world generation, radio model, decision logic |
 | `web/app/`, `web/components/` | Live view (canvas map, per-agent views, controls) and compare page |
