@@ -1,0 +1,17 @@
+{
+  "name": "ridgeline-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:sim": "bun src/live/bridge.ts",
+    "compare": "bun src/live/runner.ts results.json 20",
+    "typecheck": "tsc -p tsconfig.live.json"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}
