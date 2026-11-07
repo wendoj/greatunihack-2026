@@ -1,3 +1,5 @@
+import { PATH_COLOR, STREAM_COLOR } from "@/lib/colors";
+
 const Item = ({ sw, children }: { sw: React.ReactNode; children: React.ReactNode }) => (
   <li className="flex items-center gap-2.5">
     <span className="flex w-7 shrink-0 justify-center">{sw}</span>
@@ -60,6 +62,8 @@ export function Legend() {
         >
           hiker
         </Item>
+        <Item sw={<Line color={PATH_COLOR} dash="1.5 3.5" w={2} />}>walking path</Item>
+        <Item sw={<Line color={STREAM_COLOR} />}>stream</Item>
         <Divider />
         <Item sw={<Line color="#22c55e" />}>radio link</Item>
         <Item sw={<Line color="#ef4444" dash="5 4" w={1.5} />}>ridge blocks</Item>
