@@ -174,7 +174,7 @@ export function ControlBar({ status, send, enabled, reveal, setReveal, config, s
             disabled={!enabled}
             onClick={() => send({ action: "blackout", value: !blackout })}
             className={cn(
-              "h-9 px-4 tracking-[0.2em]",
+              "h-9 px-4",
               blackout ? "btn-brand animate-pulse !border-red-300 !bg-red-600 !bg-none" : "btn-hw text-red-300 hover:text-red-200",
             )}
           >

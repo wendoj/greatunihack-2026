@@ -115,7 +115,7 @@ export default function ComparePage() {
       </header>
 
       <div className="flex flex-col gap-4 pt-2">
-        <h1 className="font-pixel text-5xl leading-[1.05]">When the radios fail.</h1>
+        <h1 className="font-pixel text-5xl leading-[1.05]">How do we compare?</h1>
         {results && (
           <p className="max-w-4xl text-[26px] leading-tight tracking-tight text-foreground">
             {summaryParts(results)[0]}
